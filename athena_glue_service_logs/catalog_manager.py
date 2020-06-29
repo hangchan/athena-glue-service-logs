@@ -228,7 +228,9 @@ class BaseCatalogManager(object):
         }
 
     def _table_parameters(self):
-        return {}
+        table_parameters = {}
+        table_parameters_with_grouping = self.parameters_with_grouping(table_parameters)
+        return table_parameters_with_grouping
 
     @abc.abstractmethod
     def _build_storage_descriptor(self, partition_values=None):
