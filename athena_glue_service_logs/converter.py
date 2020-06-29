@@ -34,6 +34,7 @@ class DataConverter(object):
     def run(self):
         """Extract data from the data catalog and convert it to parquet, partitioning it along the way"""
         from awsglue.transforms import DropNullFields
+        from awsglue.dynamicframe import DynamicFrame
 
         # Retrieve the source data from the Glue catalog
         source_data = self.glue_context.create_dynamic_frame.from_catalog(
@@ -58,17 +59,18 @@ class DataConverter(object):
         # Create Y-m-d partitions out of the optimized table's timestamp field
         df_partitions = self._replace_date_partitions(data_frame, self.data_catalog.timestamp_field())
 
+        # DataFrame runs out of memory for large datasets
+        # Convert back to a DynamicFrame for further processing.
+        partitioned_dynamicframe = DynamicFrame.fromDF(df_partitions, self.glue_context, "partitioned_dynamicframe")
+
         # Write out to partitioned parquet. We repartition to reduce the number of files to optimize Athena performance.
         # Athena queries will slow down even at 1,000 files, so we tradeoff having large files per partition rather
         # than many small files.
-        (
-            df_partitions
-            .repartition(*self._partition_columns())
-            .write
-            .mode('append')
-            .partitionBy(*self._partition_columns())
-            .parquet(self.optimized_catalog.get_s3_location())
-        )
+        self.glue_context.write_dynamic_frame.from_options(
+            frame = partitioned_dynamicframe,
+            connection_type = "s3",    
+            connection_options = {"path": self.optimized_catalog.get_s3_location(), "partitionKeys": ['region', 'year', 'month', 'day']},
+            format = "parquet")
 
     def _partition_columns(self):
         return [x['Name'] for x in self.optimized_catalog.partitioner.partition_keys()]  # pylint: disable=w0212
