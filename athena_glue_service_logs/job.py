@@ -30,6 +30,7 @@ Then the console will StartJobRun with the resulting Job name and several parame
     --s3_converted_target - The S3 location where converted logs will be written
     --converted_database_name - The name of the database where the converted logs are stored
     --converted_table_name - The name of the table for the converted and optimized AWS service logs
+    --push_down_predicate - Filter on partition without having to read all the files in the dataset
 """
 import sys
 import json
@@ -84,6 +85,7 @@ class JobRunner(object):
             args['raw_database_name'],
             args['raw_table_name'],
             args['s3_source_location']
+            args['push_down_predicate']
         )
         self.optimized_catalog = converted_klas(
             region,

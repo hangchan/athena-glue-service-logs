@@ -40,6 +40,7 @@ class DataConverter(object):
         source_data = self.glue_context.create_dynamic_frame.from_catalog(
             database=self.data_catalog.get_database_name(),
             table_name=self.data_catalog.get_table_name(),
+            push_down_predicate=self.data_catalog.get_push_down_predicate(),
             transformation_ctx="source_data"
         )
 
