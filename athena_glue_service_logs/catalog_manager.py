@@ -29,12 +29,13 @@ class BaseCatalogManager(object):
     MAX_PARTITION_INPUT_PER_CALL = 100
     FILE_GROUPING_PARAMS = {'groupFiles': 'inPartition', 'groupSize': '134217728'}
 
-    def __init__(self, region, database_name, table_name, s3_location):
+    def __init__(self, region, database_name, table_name, s3_location, push_down_predicate):
         self.database_name = database_name
         self.table_name = table_name
         self.s3_location = s3_location
         self.glue_client = boto3.client('glue', region_name=region)
         self._partitioner = None
+        self.push_down_predicate = push_down_predicate
 
     def initialize_with_partitions(self, partition_values):
         """Create this table in the Data Catalog, and also add the provided partitions
@@ -256,3 +257,7 @@ class BaseCatalogManager(object):
         table_params.update(original_params)
 
         return table_params
+
+    def get_push_down_predicate(self):
+        """Push Down Predicate accessor"""
+        return self.push_down_predicate
