@@ -84,14 +84,15 @@ class JobRunner(object):
             region,
             args['raw_database_name'],
             args['raw_table_name'],
-            args['s3_source_location']
+            args['s3_source_location'],
             args['push_down_predicate']
         )
         self.optimized_catalog = converted_klas(
             region,
             args['converted_database_name'],
             args['converted_table_name'],
-            args['s3_converted_target']
+            args['s3_converted_target'],
+            args['push_down_predicate']
         )
 
         # Assume that if the raw table does not exist, this is our first run
@@ -166,7 +167,8 @@ class JobRunner(object):
             'converted_database_name',
             'converted_table_name',
             's3_source_location',
-            's3_converted_target'
+            's3_converted_target',
+            'push_down_predicate'
         ]
 
     @staticmethod
